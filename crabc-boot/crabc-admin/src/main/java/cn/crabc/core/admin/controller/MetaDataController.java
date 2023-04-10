@@ -4,7 +4,6 @@ import cn.crabc.core.admin.entity.BaseDatasource;
 import cn.crabc.core.admin.service.system.IBaseDataSourceService;
 import cn.crabc.core.admin.util.Result;
 import cn.crabc.core.app.driver.DataSourceManager;
-import cn.crabc.core.spi.DataSourceDriver;
 import cn.crabc.core.spi.MetaDataMapper;
 import cn.crabc.core.spi.bean.Column;
 import cn.crabc.core.spi.bean.Schema;
@@ -49,7 +48,7 @@ public class MetaDataController {
 
     @Cacheable(cacheNames = "schemaCache", cacheManager = "metaDataManager", key = "#datasourceId")
     @GetMapping("/schemas")
-    public Result getSchemas(@RequestParam("datasourceId") String datasourceId, @RequestParam(defaultValue = "1", required = false) String catalog) {
+    public Result getSchemas(@RequestParam("datasourceId") String datasourceId, String catalog) {
         MetaDataMapper metaData = dataSourceManager.getMetaData(datasourceId);
         List<Schema> schemas = metaData.getSchemas(datasourceId, catalog);
         return Result.success(schemas);

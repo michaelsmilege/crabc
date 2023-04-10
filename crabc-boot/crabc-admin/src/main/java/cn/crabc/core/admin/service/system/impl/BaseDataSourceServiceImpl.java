@@ -150,7 +150,7 @@ public class BaseDataSourceServiceImpl implements IBaseDataSourceService {
     }
 
     @Override
-    public Integer test(BaseDatasource dataSource) {
+    public String test(BaseDatasource dataSource) {
         this.parsePassword(dataSource);
         return iBaseDataService.testConnection(dataSource);
     }
@@ -163,10 +163,10 @@ public class BaseDataSourceServiceImpl implements IBaseDataSourceService {
     private void parsePassword(BaseDatasource dataSource) {
         String password = dataSource.getPassword();
         String pwd = null;
-        if (password != null && !password.trim().equals("")) {
+        if (password != null && !"".equals(password.trim())) {
             pwd = this.decryptPwd(password);
         }
-        if (pwd == null) {
+        if (pwd == null && dataSource.getDatasourceId() !=null && !"".equals(dataSource.getDatasourceId())) {
             BaseDatasource baseDatasource = dataSourceMapper.selectOne(Integer.parseInt(dataSource.getDatasourceId()));
             try {
                 pwd = RSAUtils.decryptByPriKey(baseDatasource.getSecretKey(), baseDatasource.getPassword());

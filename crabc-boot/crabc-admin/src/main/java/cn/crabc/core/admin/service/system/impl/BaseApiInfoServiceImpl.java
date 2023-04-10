@@ -1,15 +1,13 @@
 package cn.crabc.core.admin.service.system.impl;
 
-import cn.crabc.core.admin.entity.BaseApiInfo;
-import cn.crabc.core.admin.entity.BaseApiSql;
-import cn.crabc.core.admin.entity.BaseApp;
-import cn.crabc.core.admin.entity.BaseAppApi;
+import cn.crabc.core.admin.entity.*;
 import cn.crabc.core.admin.entity.dto.ApiInfoDTO;
 import cn.crabc.core.admin.entity.param.ApiInfoParam;
 import cn.crabc.core.admin.entity.vo.ApiComboBoxVO;
 import cn.crabc.core.admin.entity.vo.ApiInfoVO;
 import cn.crabc.core.admin.enums.ApiStateEnum;
 import cn.crabc.core.admin.mapper.BaseApiInfoMapper;
+import cn.crabc.core.admin.mapper.BaseApiParamMapper;
 import cn.crabc.core.admin.mapper.BaseAppApiMapper;
 import cn.crabc.core.admin.mapper.BaseAppMapper;
 import cn.crabc.core.admin.service.system.IBaseApiInfoService;
@@ -46,6 +44,8 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     @Autowired
     private BaseAppApiMapper baseAppApiMapper;
     @Autowired
+    private BaseApiParamMapper apiParamMapper;
+    @Autowired
     @Qualifier("apiCache")
     Cache<String, Object> apiInfoCache;
 
@@ -55,7 +55,11 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     }
     @Override
     public void initApi() {
-        List<ApiInfoDTO> apis = this.getApiCache(null);
+        updateCache(null);
+    }
+
+    private void updateCache(Long apiId){
+        List<ApiInfoDTO> apis = this.getApiCache(apiId);
         for (ApiInfoDTO api : apis) {
             apiInfoCache.put(api.getApiMethod() + "_" + api.getApiPath(), api);
         }
@@ -67,17 +71,20 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         if (apiInfos.size() == 0) {
             return apiInfos;
         }
+        // 应用
         List<BaseApp> appApis = baseAppMapper.selectApiApp(apiId);
         Map<Long, List<BaseApp>> appMap = appApis.stream().collect(Collectors.groupingBy(BaseApp::getApiId));
+        // 请求参数
+        List<BaseApiParam> baseApiParams = apiParamMapper.selectReqParams(apiId);
+        Map<Long, List<BaseApiParam>> paramMap = baseApiParams.stream().collect(Collectors.groupingBy(BaseApiParam::getApiId));
         for (ApiInfoDTO api : apiInfos) {
-            if (appMap.containsKey(api.getApiId())) {
-                api.setAppList(appMap.get(api.getApiId()));
+            Long apiIdKey = api.getApiId();
+            if (appMap.containsKey(apiIdKey)) {
+                api.setAppList(appMap.get(apiIdKey));
             }
-        }
-
-        if (apiId != null && apiInfos.size() > 0) {
-            ApiInfoDTO api = apiInfos.get(0);
-            apiInfoCache.put(api.getApiMethod() + "_" + api.getApiPath(), api);
+            if (paramMap.containsKey(apiIdKey)){
+                api.setRequestParams(paramMap.get(apiIdKey));
+            }
         }
         return apiInfos;
     }
@@ -125,15 +132,21 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         baseApiInfo.setPageSetup(baseApiSql.getPageSetup());
         result.setBaseInfo(baseApiInfo);
         result.setQueryEngine("jdbc");
+        List<BaseApiParam> baseApiParams = apiParamMapper.selectList(apiId);
+        if (!baseApiParams.isEmpty()) {
+            Map<String, List<BaseApiParam>> map = baseApiParams.stream().collect(Collectors.groupingBy(BaseApiParam::getParamModel));
+            result.setRequestParam(map.get("request") == null ? new ArrayList<>() : map.get("request"));
+            result.setResponseParam(map.get("response") == null ? new ArrayList<>() : map.get("response"));
+        }
         return result;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long addApiInfo(ApiInfoParam apiInfo) {
+    public Long addApiInfo(ApiInfoParam params) {
         Date date = new Date();
-        BaseApiInfo api = apiInfo.getBaseInfo();
-        BaseApiSql sql = apiInfo.getSqlInfo();
+        BaseApiInfo api = params.getBaseInfo();
+        BaseApiSql sql = params.getSqlInfo();
         api.setApiStatus(ApiStateEnum.EDIT.getName());
         api.setEnabled(0);
         api.setApiType("SQL");
@@ -142,38 +155,39 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         api.setDatasourceType(sql.getDatasourceType());
         api.setSqlScript(sql.getSqlScript());
         api.setCreateTime(date);
+        api.setUpdateTime(date);
         api.setCreateBy(UserThreadLocal.getUserId());
         if (api.getGroupId() == null) {
             api.setGroupId(1);
         }
         apiInfoMapper.insertApiInfo(api);
+        // 参数
+        this.insertApiParams(params.getRequestParam(),params.getResponseParam());
         return api.getApiId();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long updateApiInfo(ApiInfoParam apiInfo) {
-        Integer count = apiInfoMapper.countApi(apiInfo.getBaseInfo().getApiId());
+    public Long updateApiInfo(ApiInfoParam params) {
+        Long apiId = params.getBaseInfo().getApiId();
+        Integer count = apiInfoMapper.countApi(apiId);
         if (count == 0) {
             throw new CustomException(52002, "API不存在");
         }
-        BaseApiInfo api = apiInfo.getBaseInfo();
-        BaseApiSql sql = apiInfo.getSqlInfo();
+        BaseApiInfo api = params.getBaseInfo();
+        BaseApiSql sql = params.getSqlInfo();
         Date updateTime = new Date();
-        api.setApiStatus(ApiStateEnum.EDIT.getName());
-        api.setEnabled(0);
-        api.setApiType("SQL");
         api.setDatasourceId(sql.getDatasourceId());
         api.setSchemaName(sql.getSchemaName());
         api.setDatasourceType(sql.getDatasourceType());
         api.setSqlScript(sql.getSqlScript());
         api.setUpdateTime(updateTime);
         api.setUpdateBy(UserThreadLocal.getUserId());
-        if (api.getGroupId() == null) {
-            api.setGroupId(1);
-        }
         apiInfoMapper.updateApiInfo(api);
-        return apiInfo.getBaseInfo().getApiId();
+        apiParamMapper.delete(apiId);
+        // 参数
+        this.insertApiParams(params.getRequestParam(),params.getResponseParam());
+        return apiId;
     }
 
     @Override
@@ -192,6 +206,8 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         if (enabled != null) {
             baseApiInfo.setEnabled(enabled);
         }
+        // 更新缓存
+        this.updateCache(apiId);
         apiInfoMapper.updateApiState(baseApiInfo);
         return 1;
     }
@@ -227,7 +243,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         baseApiInfo.setApiStatus(ApiStateEnum.RELEASE.getName());
         apiInfoMapper.updateApiInfo(baseApiInfo);
         // 更新缓存
-        this.getApiCache(baseApiInfo.getApiId());
+        this.updateCache(baseApiInfo.getApiId());
         return apiId;
     }
 
@@ -283,5 +299,23 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         apiInfo.setUpdateTime(updateTime);
         apiInfo.setApiId(null);
         apiInfoMapper.insertApiInfo(apiInfo);
+    }
+
+    /**
+     * 新增API参数
+     * @param requestParams
+     * @param responseParams
+     */
+    private void insertApiParams(List<BaseApiParam> requestParams, List<BaseApiParam> responseParams){
+        List<BaseApiParam> params = new ArrayList<>();
+        if (requestParams != null && requestParams.size() > 0) {
+            params.addAll(requestParams);
+        }
+        if (responseParams != null && responseParams.size() > 0) {
+            params.addAll(responseParams);
+        }
+        if (params.size() > 0) {
+            apiParamMapper.insertBatch(params);
+        }
     }
 }

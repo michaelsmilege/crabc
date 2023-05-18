@@ -41,6 +41,8 @@ public class BaseUser extends BaseEntity {
     /** 帐号状态（0正常 1停用） */
     private String status;
 
+    private String remark;
+
     public Long getUserId() {
         return userId;
     }
@@ -119,5 +121,13 @@ public class BaseUser extends BaseEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 }

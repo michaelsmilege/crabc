@@ -63,9 +63,9 @@ public class JdbcMeataData implements MetaDataMapper {
                 schema.setSchema(schemaName);
                 schema.setCatalog(catalog);
 //                schema.setDatasourceId(dataSourceId);
-//                if ("information_schema".equalsIgnoreCase(schemaName) || "performance_schema".equalsIgnoreCase(schemaName) || "pg_catalog".equals(schemaName)) {
-//                    continue;
-//                }
+                if ("information_schema".equalsIgnoreCase(schemaName) || "performance_schema".equalsIgnoreCase(schemaName) || "pg_catalog".equals(schemaName)) {
+                    continue;
+                }
                 schemas.add(schema);
             }
         } catch (Exception e) {
@@ -140,7 +140,15 @@ public class JdbcMeataData implements MetaDataMapper {
                 column.setColumnDefault(resultSet.getString("COLUMN_DEF"));
                 column.setDecimalDigits(resultSet.getString("DECIMAL_DIGITS"));
                 column.setCatalog(resultSet.getString("TABLE_CAT"));
-
+                String columnType = column.getColumnType() == null ? "": column.getColumnType().toUpperCase();
+                if (columnType.contains("DATE") || columnType.contains("TIME")) {
+                    column.setTypeIcon("date");
+                }else if(columnType.contains("INT") || columnType.contains("NUMBER")
+                        || columnType.contains("FLOAT") || columnType.contains("DECIMAL")) {
+                    column.setTypeIcon("int");
+                }else{
+                    column.setTypeIcon("str");
+                }
                 //column.setDatasourceId(dataSourceId);
                 column.setSchema(schema);
                 column.setTableName(table);

@@ -4,11 +4,13 @@ import cn.crabc.core.admin.entity.BaseApiLog;
 import cn.crabc.core.admin.entity.BaseApp;
 import cn.crabc.core.admin.entity.dto.ApiInfoDTO;
 import cn.crabc.core.admin.enums.ApiAuthEnum;
+import cn.crabc.core.admin.service.system.IBaseApiInfoService;
 import cn.crabc.core.admin.service.system.IBaseApiLogService;
 import cn.crabc.core.admin.util.ApiThreadLocal;
 import cn.crabc.core.admin.util.HmacSHAUtils;
 import cn.crabc.core.admin.util.IPUtil;
 import cn.crabc.core.admin.util.RequestUtils;
+import cn.crabc.core.app.enums.ErrorStatusEnum;
 import cn.crabc.core.app.exception.CustomException;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
@@ -37,12 +39,15 @@ public class AuthInterceptor implements HandlerInterceptor {
     // API开放接口前缀
     private final static String API_PRE = "/api/web/";
     @Autowired
-    @Qualifier("apiCache")
-    Cache<String, Object> apiCache;
+    private IBaseApiInfoService iBaseApiInfoService;
     @Autowired
     private IBaseApiLogService iBaseApiLogService;
     @Value("${crabc.auth.expiresTime:10}")
     private Integer expiresTime;
+
+    @Autowired
+    @Qualifier("apiCache")
+    Cache<String, Object> apiCache;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -51,18 +56,19 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         Object apiData = apiCache.getIfPresent(method + "_" + path.replace(API_PRE, ""));
         if (apiData == null) {
-            throw new CustomException(53005, "API不存在！");
+            throw new CustomException(ErrorStatusEnum.API_INVALID.getCode(), ErrorStatusEnum.API_INVALID.getMassage());
         }
         ApiInfoDTO apiInfo = (ApiInfoDTO) apiData;
         if (apiInfo.getEnabled() == 0) {
-            throw new CustomException(53006, "该API已下线！");
+            throw new CustomException(ErrorStatusEnum.API_OFFLINE.getCode(), ErrorStatusEnum.API_OFFLINE.getMassage());
         }
+
         // IP校验
         List<BaseApp> appList = apiInfo.getAppList();
         if (appList.size() > 0) {
             boolean check = ipCheck(request, appList);
             if (!check) {
-                throw new CustomException(53010, "您的IP地址不在可许范围内");
+                throw new CustomException(ErrorStatusEnum.IP_INVALID.getCode(), ErrorStatusEnum.IP_INVALID.getMassage());
             }
         }
         boolean auth = true;
@@ -72,7 +78,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             auth = checkHmacSHA256(request, appList);
         }
         if (!auth) {
-            throw new CustomException(53001, "您没有访问该API的权限");
+            throw new CustomException(ErrorStatusEnum.API_UN_AUTH.getCode(), ErrorStatusEnum.API_UN_AUTH.getMassage());
         }
         // 存入当前时间，当作是日志的请求时间
         apiInfo.setRequestDate(new Date());
@@ -175,13 +181,13 @@ public class AuthInterceptor implements HandlerInterceptor {
         String timeStamp = request.getHeader("timestamp") == null ? request.getParameter("timestamp") : request.getHeader("timestamp");
         String appKey = request.getHeader("appkey") == null ? request.getParameter("appkey") : request.getHeader("appkey");
         if (appKey == null || sign == null || timeStamp == null) {
-            throw new CustomException(53002, "认证参数(appkey/timestamp/sign)不能为空！");
+            throw new CustomException(ErrorStatusEnum.SHA_PARAM_NOT_FOUNT.getCode(), ErrorStatusEnum.PARAM_NOT_FOUNT.getMassage());
         }
         // 校验时间戳,超过10分钟失效
         long authTime = Long.parseLong(timeStamp);
         long nowTime = System.currentTimeMillis() - authTime;
         if (nowTime > expiresTime * 60 * 1000) {
-            throw new CustomException(53003, "timestamp已过期！");
+            throw new CustomException(ErrorStatusEnum.SHA_TIMESTAMP_EXPIRE.getCode(), ErrorStatusEnum.SHA_TIMESTAMP_EXPIRE.getMassage());
         }
         String method = request.getMethod();
         StringBuilder bodyStr = new StringBuilder();

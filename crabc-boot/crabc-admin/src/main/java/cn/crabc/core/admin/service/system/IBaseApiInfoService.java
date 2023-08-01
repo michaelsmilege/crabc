@@ -6,6 +6,7 @@ import cn.crabc.core.admin.entity.dto.ApiInfoDTO;
 import cn.crabc.core.admin.entity.param.ApiInfoParam;
 import cn.crabc.core.admin.entity.vo.ApiComboBoxVO;
 import cn.crabc.core.admin.entity.vo.ApiInfoVO;
+import cn.crabc.core.admin.entity.vo.BaseApiExcelVO;
 import cn.crabc.core.admin.entity.vo.BaseApiInfoVO;
 import cn.crabc.core.admin.util.PageInfo;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public interface IBaseApiInfoService {
 
     void initApi();
+
     /**
      * 获取API关联数据
      *
@@ -151,4 +153,18 @@ public interface IBaseApiInfoService {
      * @return
      */
     Integer addChooseApi(BaseAppApi appApi);
+
+    /**
+     * API基本信息列表
+     *
+     * @param apiName
+     * @return
+     */
+    List<BaseApiExcelVO> getApiInfoList(String apiName, String devType);
+
+    /**
+     * 导入新增API
+     * @return
+     */
+    Long addApiInfo(List<BaseApiExcelVO> list, String type);
 }

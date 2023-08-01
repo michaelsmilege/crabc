@@ -5,25 +5,25 @@ use crabc;
 -- 1.0
 CREATE TABLE `base_api_info` (
                                  `api_id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-                                 `api_name` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-                                 `api_path` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'API路径',
-                                 `api_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'API类型：sql、table',
-                                 `api_method` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '请求方式 get、post、put、delete、aptch',
-                                 `auth_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '授权类型：none、code、secret',
+                                 `api_name` varchar(512)  DEFAULT NULL,
+                                 `api_path` varchar(512)  DEFAULT NULL COMMENT 'API路径',
+                                 `api_type` varchar(30)  DEFAULT NULL COMMENT 'API类型：sql、table',
+                                 `api_method` varchar(30)  DEFAULT NULL COMMENT '请求方式 get、post、put、delete、aptch',
+                                 `auth_type` varchar(50)  DEFAULT NULL COMMENT '授权类型：none、code、secret',
                                  `enabled` int DEFAULT NULL COMMENT '开放启用 1/0',
-                                 `api_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'API状态：编辑edit、审批audit、发布release、销毁destroy',
-                                 `group_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '分组ID',
+                                 `api_status` varchar(50)  DEFAULT NULL COMMENT 'API状态：编辑edit、审批audit、发布release、销毁destroy',
+                                 `group_id` varchar(128)  DEFAULT NULL COMMENT '分组ID',
                                  `parent_id` bigint DEFAULT NULL COMMENT '父级关联Id',
-                                 `tenant_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '租户ID',
+                                 `tenant_id` varchar(128)  DEFAULT NULL COMMENT '租户ID',
                                  `page_setup` int DEFAULT NULL COMMENT '分页设置，不分页：0、只分页：1、分页并统计：2',
                                  `sql_type` varchar(20) DEFAULT NULL COMMENT 'SQL执行类型（select、insert、update、delete）',
                                  `sql_script` text COMMENT 'SQL脚本',
                                  `datasource_id` varchar(128) DEFAULT NULL COMMENT '数据源ID',
-                                 `datasource_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '数据源类型',
-                                 `schema_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+                                 `datasource_type` varchar(50)  DEFAULT NULL COMMENT '数据源类型',
+                                 `schema_name` varchar(100)  DEFAULT NULL,
                                  `release_time` datetime DEFAULT NULL COMMENT '发布时间',
                                  `remarks` varchar(1000) DEFAULT NULL COMMENT '描述',
-                                 `version` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '版本',
+                                 `version` varchar(100)  DEFAULT NULL COMMENT '版本',
                                  `create_by` varchar(128) DEFAULT NULL,
                                  `create_time` datetime DEFAULT NULL,
                                  `update_by` varchar(128) DEFAULT NULL,
@@ -59,9 +59,9 @@ CREATE TABLE `base_api_sql` (
                                 `api_id` bigint NOT NULL COMMENT 'API自增主键',
                                 `sql_script` text COMMENT 'sql语句脚本',
                                 `page_setup` int DEFAULT NULL COMMENT '分页设置，不分页：0、只分页：1、分页并统计：2',
-                                `datasource_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '数据源ID',
+                                `datasource_id` varchar(128)  DEFAULT NULL COMMENT '数据源ID',
                                 `datasource_type` varchar(50) DEFAULT NULL COMMENT '数据源类型',
-                                `schema_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'schema多个逗号分割',
+                                `schema_name` varchar(100)  DEFAULT NULL COMMENT 'schema多个逗号分割',
                                 `create_by` varchar(128) DEFAULT NULL,
                                 `create_time` datetime DEFAULT NULL,
                                 `update_by` varchar(128) DEFAULT NULL,
@@ -71,12 +71,12 @@ CREATE TABLE `base_api_sql` (
 
 CREATE TABLE `base_app` (
                             `app_id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-                            `app_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '应用名创',
-                            `app_desc` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '描述',
-                            `app_code` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'code简单认证',
-                            `app_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '密钥key',
-                            `app_secret` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '密钥',
-                            `strategy_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '控制策略类型：白名单：white、黑名单black',
+                            `app_name` varchar(100)  NOT NULL COMMENT '应用名创',
+                            `app_desc` varchar(300)  DEFAULT NULL COMMENT '描述',
+                            `app_code` varchar(128)  DEFAULT NULL COMMENT 'code简单认证',
+                            `app_key` varchar(128)  DEFAULT NULL COMMENT '密钥key',
+                            `app_secret` varchar(256)  DEFAULT NULL COMMENT '密钥',
+                            `strategy_type` varchar(20)  DEFAULT NULL COMMENT '控制策略类型：白名单：white、黑名单black',
                             `ips` varchar(1000) DEFAULT NULL COMMENT 'IP地址，多个分号隔开',
                             `enabled` int DEFAULT NULL COMMENT '状态：1启用，0禁用',
                             `create_by` varchar(128) DEFAULT NULL,
@@ -104,10 +104,10 @@ CREATE TABLE `base_datasource` (
                                    `host` varchar(50) DEFAULT NULL COMMENT '服务器地址',
                                    `port` varchar(10) DEFAULT NULL COMMENT '端口',
                                    `username` varchar(100) DEFAULT NULL COMMENT '账号',
-                                   `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '秘密',
-                                   `remarks` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-                                   `extend` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '扩展配置',
-                                   `secret_key` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '密码解密密钥',
+                                   `password` varchar(256)  DEFAULT NULL COMMENT '秘密',
+                                   `remarks` varchar(500)  DEFAULT NULL,
+                                   `extend` varchar(1000)  DEFAULT NULL COMMENT '扩展配置',
+                                   `secret_key` text  COMMENT '密码解密密钥',
                                    `create_by` varchar(128) DEFAULT NULL,
                                    `create_time` datetime DEFAULT NULL,
                                    `update_time` datetime DEFAULT NULL,
@@ -136,15 +136,15 @@ CREATE TABLE `base_group` (
 CREATE TABLE `base_sys_user` (
                                  `user_id` bigint NOT NULL AUTO_INCREMENT COMMENT '用户ID',
                                  `user_name` varchar(30) NOT NULL COMMENT '用户账号',
-                                 `nick_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户名称',
+                                 `nick_name` varchar(30)  NOT NULL COMMENT '用户名称',
                                  `user_type` varchar(2) DEFAULT '0' COMMENT '用户类型',
-                                 `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '密码',
+                                 `password` varchar(100)  DEFAULT '' COMMENT '密码',
                                  `role` varchar(128) DEFAULT NULL COMMENT '角色',
                                  `email` varchar(50) DEFAULT '' COMMENT '用户邮箱',
                                  `phone` varchar(13) DEFAULT '' COMMENT '手机号码',
                                  `sex` char(1) DEFAULT '0' COMMENT '用户性别（0男 1女 2未知）',
-                                 `picture` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '头像',
-                                 `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '1' COMMENT '帐号状态（0正常 1停用）',
+                                 `picture` varchar(100)  DEFAULT '' COMMENT '头像',
+                                 `status` char(1)  DEFAULT '1' COMMENT '帐号状态（0正常 1停用）',
                                  `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
                                  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
                                  `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
@@ -154,30 +154,58 @@ CREATE TABLE `base_sys_user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户信息表';
 
 -- 2.0新增表
+DROP TABLE IF EXISTS `base_api_param`;
 CREATE TABLE `base_api_param` (
                                   `param_id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
                                   `api_id` bigint NOT NULL COMMENT 'apiId',
-                                  `param_name` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '参数名',
-                                  `param_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '1' COMMENT '参数类型：1:请求参数，2:返回参数',
-                                  `column_name` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '关联字段名',
-                                  `param_model` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '参数模型，request,response',
+                                  `param_name` varchar(256)  DEFAULT NULL COMMENT '参数名',
+                                  `param_type` varchar(30)  DEFAULT '1' COMMENT '参数类型：1:请求参数，2:返回参数',
+                                  `column_name` varchar(256)  DEFAULT NULL COMMENT '关联字段名',
+                                  `param_model` varchar(30)  DEFAULT NULL COMMENT '参数模型，request,response',
                                   `required` tinyint(1) DEFAULT '1' COMMENT '是否必填',
-                                  `operation` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '操作符',
-                                  `default_value` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '默认值',
-                                  `example` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '示例值',
+                                  `operation` varchar(50)  DEFAULT NULL COMMENT '操作符',
+                                  `default_value` varchar(512)  DEFAULT NULL COMMENT '默认值',
+                                  `example` varchar(512)  DEFAULT NULL COMMENT '示例值',
                                   `datasource_id` varchar(128) DEFAULT NULL COMMENT '数据源ID',
-                                  `schema_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Schema名',
-                                  `table_name` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '表名',
-                                  `param_desc` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '描述',
+                                  `schema_name` varchar(128)  DEFAULT NULL COMMENT 'Schema名',
+                                  `table_name` varchar(256)  DEFAULT NULL COMMENT '表名',
+                                  `param_desc` varchar(512)  DEFAULT NULL COMMENT '描述',
                                   `create_time` datetime DEFAULT NULL,
                                   PRIMARY KEY (`param_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='API接口参数';
 
+-- 2.5新增表
+DROP TABLE IF EXISTS `base_flow_api`;
+CREATE TABLE `base_flow_api` (
+                                 `id` int NOT NULL AUTO_INCREMENT,
+                                 `flow_id` int DEFAULT NULL,
+                                 `api_id` int DEFAULT NULL,
+                                 `create_time` datetime DEFAULT NULL,
+                                 `create_by` varchar(128) DEFAULT NULL,
+                                 PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='API限流关系表';
+
+DROP TABLE IF EXISTS `base_flow_rule`;
+CREATE TABLE `base_flow_rule` (
+                                  `flow_id` int NOT NULL AUTO_INCREMENT,
+                                  `flow_name` varchar(128) DEFAULT NULL COMMENT '规则名称',
+                                  `flow_grade` varchar(100)  DEFAULT NULL COMMENT '限流等级',
+                                  `unit_time` int DEFAULT NULL COMMENT '单位时间s',
+                                  `flow_count` int DEFAULT NULL COMMENT '限流阈值',
+                                  `flow_type` varchar(100)  DEFAULT NULL COMMENT '策略类型：flow、degrade',
+                                  `api_count` int DEFAULT NULL COMMENT '关联API数量',
+                                  `api_json` text COMMENT 'api数据',
+                                  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+                                  `update_time` datetime DEFAULT NULL,
+                                  `create_by` varchar(128) DEFAULT NULL,
+                                  `update_by` varchar(128) DEFAULT NULL,
+                                  PRIMARY KEY (`flow_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='限流规则表';
 -- 初始化数据
 INSERT INTO base_sys_user
 (user_id, user_name, nick_name, user_type, password, `role`, email, phone, sex, picture, status, create_by, create_time, update_by, update_time, remark)
-VALUES(1, 'admin', '管理员', '0', '0192023A7BBD73250516F069DF18B500', 'admin', '', '', '1', '', '1', '1', '2023-03-01 00:00:00', '1', '2023-03-01 00:00:00', '密码：admin123');
+VALUES(1, 'admin', 'admin', '0', '0192023A7BBD73250516F069DF18B500', 'admin', '', '', '1', '', '1', '1', '2023-03-01 00:00:00', '1', '2023-03-01 00:00:00', '密码：admin123');
 
 INSERT INTO base_group
 (group_id, parent_id, group_name, group_desc, create_by, create_time, update_by, update_time)
-VALUES(1, 0, '根目录', '根目录', '1', '2023-03-01 00:00:00', '1', '2023-03-01 00:00:00');
+VALUES(1, 0, 'root', 'root', '1', '2023-03-01 00:00:00', '1', '2023-03-01 00:00:00');

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +37,37 @@ public class BaseDataSourceServiceImpl implements IBaseDataSourceService {
     @Autowired
     @Qualifier("dataCache")
     Cache<String, Object> caffeineCache;
+
+    /**
+     * 启动加载
+     */
+    @PostConstruct
+    public void load() {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                init();
+            }
+        });
+        t.start();
+    }
+
+    @Override
+    public void init() {
+        List<BaseDataSource> baseDataSources = this.getList();
+        for (BaseDataSource dataSource : baseDataSources) {
+            String priKey = dataSource.getSecretKey();
+            try {
+                if (dataSource.getPassword() != null) {
+                    String pwd = RSAUtils.decryptByPriKey(priKey, dataSource.getPassword());
+                    dataSource.setPassword(pwd);
+                }
+                dataSourceManager.createDataSource(dataSource);
+            } catch (Exception e) {
+
+            }
+        }
+    }
 
     @Override
     public List<BaseDataSource> getList() {

@@ -5,6 +5,7 @@ import cn.crabc.core.admin.entity.dto.ApiInfoDTO;
 import cn.crabc.core.admin.entity.param.ApiInfoParam;
 import cn.crabc.core.admin.entity.vo.ApiComboBoxVO;
 import cn.crabc.core.admin.entity.vo.ApiInfoVO;
+import cn.crabc.core.admin.entity.vo.BaseApiExcelVO;
 import cn.crabc.core.admin.entity.vo.BaseApiInfoVO;
 import cn.crabc.core.admin.enums.ApiStateEnum;
 import cn.crabc.core.admin.mapper.BaseApiInfoMapper;
@@ -14,6 +15,7 @@ import cn.crabc.core.admin.mapper.BaseAppMapper;
 import cn.crabc.core.admin.service.system.IBaseApiInfoService;
 import cn.crabc.core.admin.util.PageInfo;
 import cn.crabc.core.admin.util.UserThreadLocal;
+import cn.crabc.core.app.enums.ErrorStatusEnum;
 import cn.crabc.core.app.exception.CustomException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.pagehelper.PageHelper;
@@ -51,15 +53,16 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     Cache<String, Object> apiInfoCache;
 
     @Scheduled(cron = "*/30 * * * * ?")
-    public void task(){
+    public void task() {
         initApi();
     }
+
     @Override
     public void initApi() {
         updateCache(null);
     }
 
-    private void updateCache(Long apiId){
+    private void updateCache(Long apiId) {
         List<ApiInfoDTO> apis = this.getApiCache(apiId);
         for (ApiInfoDTO api : apis) {
             apiInfoCache.put(api.getApiMethod() + "_" + api.getApiPath(), api);
@@ -83,7 +86,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
             if (appMap.containsKey(apiIdKey)) {
                 api.setAppList(appMap.get(apiIdKey));
             }
-            if (paramMap.containsKey(apiIdKey)){
+            if (paramMap.containsKey(apiIdKey)) {
                 api.setRequestParams(paramMap.get(apiIdKey));
             }
         }
@@ -173,7 +176,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         Long apiId = params.getBaseInfo().getApiId();
         Integer count = apiInfoMapper.countApi(apiId);
         if (count == 0) {
-            throw new CustomException(52002, "API不存在");
+            throw new CustomException(ErrorStatusEnum.API_NOT_FOUNT.getCode(), ErrorStatusEnum.API_NOT_FOUNT.getMassage());
         }
         BaseApiInfo api = params.getBaseInfo();
         BaseApiSql sql = params.getSqlInfo();
@@ -195,7 +198,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
     public Integer updateApiState(Long apiId, String status, Integer enabled) {
         Integer count = apiInfoMapper.countApi(apiId);
         if (count == 0) {
-            throw new CustomException(52002, "API不存在");
+            throw new CustomException(ErrorStatusEnum.API_NOT_FOUNT.getCode(), ErrorStatusEnum.API_NOT_FOUNT.getMassage());
         }
         BaseApiInfo baseApiInfo = new BaseApiInfo();
         baseApiInfo.setApiId(apiId);
@@ -225,7 +228,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         Long apiId = apiInfoParam.getBaseInfo().getApiId();
         BaseApiInfo oldApiInfo = apiInfoMapper.selectApiById(apiId);
         if (oldApiInfo == null) {
-            throw new CustomException(52002, "API不存在");
+            throw new CustomException(ErrorStatusEnum.API_NOT_FOUNT.getCode(), ErrorStatusEnum.API_NOT_FOUNT.getMassage());
         }
 //        if (apiInfoParam.getBaseInfo().getVersion().equals(oldApiInfo.getVersion())) {
 //            throw new CustomException(52003, "API版本号[" + oldApiInfo.getVersion() + "]已存在，请变更版本号");
@@ -244,7 +247,7 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
         baseApiInfo.setApiStatus(ApiStateEnum.RELEASE.getName());
         apiInfoMapper.updateApiInfo(baseApiInfo);
         // 更新缓存
-        this.updateCache(baseApiInfo.getApiId());
+        this.getApiCache(baseApiInfo.getApiId());
         return apiId;
     }
 
@@ -284,6 +287,26 @@ public class BaseApiInfoServiceImpl implements IBaseApiInfoService {
             list.add(a);
         }
         return baseAppApiMapper.insert(list);
+    }
+
+    @Override
+    public List<BaseApiExcelVO> getApiInfoList(String apiName, String devType) {
+        return apiInfoMapper.selectApiInfoList(apiName, devType);
+    }
+
+    @Override
+    public Long addApiInfo(List<BaseApiExcelVO> list, String type) {
+        for (BaseApiExcelVO api : list) {
+            BaseApiInfo apiInfo = new BaseApiInfo();
+            BeanUtils.copyProperties(api, apiInfo);
+            if (ApiStateEnum.RELEASE.getName().equalsIgnoreCase(type)){
+                apiInfo.setApiStatus(ApiStateEnum.RELEASE.getName());
+            }else{
+                apiInfo.setApiStatus(ApiStateEnum.EDIT.getName());
+            }
+            apiInfoMapper.insertApiInfo(apiInfo);
+        }
+        return 1L;
     }
 
     /**

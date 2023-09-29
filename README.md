@@ -1,7 +1,7 @@
 
 ## 介绍
-**Crabc** 是低代码开发平台，企业级API发布管理系统，采用SpringBoot、JWT、Mybatis等框架和SPI插件机制实现。
-支持接入（mysql、oracle、postgresql、sqlserver、elasticsearch、mongodb）等SQL或/NOSQL数据源，
+**Crabc** 是低代码开发平台，企业级API发布管理系统，深度整合SpringBoot和Mybatis实现动态数据源和动态SQL。
+支持接入（mysql、oracle、postgresql、sqlserver、elasticsearch、mongodb）等SQL或/NoSQL数据源，
 在编辑框内编写好SQL后即可快速生成Rest接口对外提供服务。支持Mybatis中if等标签语法、数据转换、参数取值、
 以及复杂的多SQL执行并支持事务， 减少通用接口的SQL编写，让开发人员专注更复杂的业务逻辑实现。可通过插件的
 方式扩展支持其他的数据源， 提供多种权限认证、限流熔断、缓存、监控等提供一站式API服务功能。
@@ -25,6 +25,7 @@ cn.crabc
 │     └── crabc-datasource   // 数据源加载模块
 │     └── crabc-api          // API调用执行模块
 │     └── crabc-spi          // 插件定义模块
+├── crabc-spring-boot-starter // spring集成包
 ├── db                       // SQL脚本
 ├──pom.xml                   // 依赖
 ~~~ 
@@ -36,20 +37,34 @@ cn.crabc
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123
 
-## wiki文档
-地址：https://gitee.com/linebyte/crabc/wikis/home
+## 使用文档
+地址：https://www.crabc.cn/guide/
 
 ## 演示环境
-地址：http://crabc.pingapi.cn
+地址：https://app.crabc.cn
 
 ## 商用授权
 仅个人学习使用，商用请加群联系
 
+## Maven集成
+
+```
+<dependency>
+    <groupId>cn.crabc</groupId>
+    <artifactId>crabc-spring-boot-starter</artifactId>
+    <version>最新版本</version>
+</dependency>
+```
+在程序启动类中添加下面两行注解
+```
+@MapperScan({"cn.crabc.core.app.mapper","cn.crabc.core.datasource.mapper"})
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+```
 ## Docker启动
 先执行db/dml.sql脚本，创建库表和初始化数据，建议mysql 8.0+版本
 ```
-> docker pull crabc/crabc-admin:latest
-> docker run -p 9377:9377 --env db_url=jdbc连接(如：jdbc:mysql://localhost:3306/crabc) --env db_user=数据库用户 --env db_pwd=数据库密码 -d --name crabc-admin crabc/crabc-admin:latest
+docker pull crabc/crabc-admin:latest
+docker run -p 9377:9377 --env db_url=jdbc连接(如：jdbc:mysql://localhost:3306/crabc) --env db_user=数据库用户 --env db_pwd=数据库密码 -d --name crabc-admin crabc/crabc-admin:latest
 ```
 访问地址：http://127.0.0.1:9377
 账号密码：admin/admin123
